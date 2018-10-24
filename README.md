@@ -23,9 +23,16 @@ If everything worked properly, the compiled JDK will be available at `build/*/im
 
 ## Running
 
-Compile the project as usual with the JDK you compiled previously.
+Install Maven.
 
-Run the program by passing the following argument to the JVM:
-`--add-modules jdk.incubator.vector`
- 
- Ignore any warnings regarding the use of incubator modules.
+Then, to compile, simply run in a shell:
+```shell
+export JAVA_HOME=/path/to/compiled/jdk  # tells maven to use our JDK
+mvn clean install  # compiles the project
+```
+
+Then, in a shell, run:
+```shell
+$JAVA_HOME/bin/java -jar target/simd.jar
+```
+Ignore any warnings regarding the use of incubator modules or illegal reflective accesses.
