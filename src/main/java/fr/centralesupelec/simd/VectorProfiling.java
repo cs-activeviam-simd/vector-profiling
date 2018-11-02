@@ -21,6 +21,8 @@ public class VectorProfiling {
     }
 
     @Benchmark
+    @Warmup(iterations=2, time=2)
+    @Measurement(iterations=3, time=2)
     public long simdPreferred(VectorState state) {
         long sum = 0;
         for(int i = 0; i < state.data.length; i += VectorState.vecLength) {
@@ -30,6 +32,8 @@ public class VectorProfiling {
     }
 
     @Benchmark
+    @Warmup(iterations=2, time=2)
+    @Measurement(iterations=3, time=2)
     public long regular(VectorState state) {
         long sum = 0;
         for(int i = 0; i < state.data.length; ++i) {
