@@ -65,19 +65,42 @@ public class VectorProfiling {
     @Warmup(iterations=2, time=2)
     @Measurement(iterations=3, time=2)
     public int[] mulRegular(VectorState state) {
-        for(int i = 0; i < state.data.length; i += VectorState.vecLength) {
+        for(int i = 0; i < state.data.length; ++i) {
             state.datc[i] = state.data[i] * state.datb[i];
         }
         return state.datc;
     }
 
     @Benchmark
-    @Fork(jvmArgsAppend = {"--add-modules", "jdk.incubator.vector","-XX:-UseSuperWord"})
-    @Warmup(iterations=2, time=2)
-    @Measurement(iterations=3, time=2)
+    @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
+    @Warmup(iterations = 2, time = 2)
+    @Measurement(iterations = 3, time = 2)
     public int[] mulRegularNoSuperWord(VectorState state) {
-        for(int i = 0; i < state.data.length; i += VectorState.vecLength) {
+        for (int i = 0; i < state.data.length; ++i) {
             state.datc[i] = state.data[i] * state.datb[i];
+        }
+        return state.datc;
+    }
+
+    @Benchmark
+    @Warmup(iterations = 2, time = 2)
+    @Measurement(iterations = 3, time = 2)
+    public int[] addSIMD(VectorState state) {
+        for (int i = 0; i < state.data.length; i += VectorState.vecLength) {
+            IntVector va = VectorState.sInt.fromArray(state.data, i);
+            IntVector vb = VectorState.sInt.fromArray(state.datb, i);
+            IntVector vc = va.add(vb);
+            vc.intoArray(state.datc, i);
+        }
+        return state.datc;
+    }
+
+    @Benchmark
+    @Warmup(iterations = 2, time = 2)
+    @Measurement(iterations = 3, time = 2)
+    public int[] addRegular(VectorState state) {
+        for (int i = 0; i < state.data.length; ++i) {
+            state.datc[i] = state.data[i] + state.datb[i];
         }
         return state.datc;
     }
