@@ -13,9 +13,11 @@ public class VectorProfiling {
         private static final int vecLength = sInt.length();
         int[] data = new int[4096];
         int[] datb = new int[4096];
+        int[] datc = new int[4096];
 
         @Setup(Level.Trial)
         public void doSetup() {
+            System.out.println(sInt.bitSize());
             Random rnd = new Random();
             for (int i = 0; i < data.length; i++) {
                 data[i] = rnd.nextInt();
@@ -50,25 +52,23 @@ public class VectorProfiling {
     @Warmup(iterations=2, time=2)
     @Measurement(iterations=3, time=2)
     public int[] mulSIMD(VectorState state) {
-        int[] datc = new int[4096];
         for(int i = 0; i < state.data.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.data, i);
             IntVector vb = VectorState.sInt.fromArray(state.datb, i);
             IntVector vc = va.mul(vb);
-            vc.intoArray(datc, i);
+            vc.intoArray(state.datc, i);
         }
-        return datc;
+        return state.datc;
     }
 
     @Benchmark
     @Warmup(iterations=2, time=2)
     @Measurement(iterations=3, time=2)
     public int[] mulRegular(VectorState state) {
-        int[] datc = new int[4096];
         for(int i = 0; i < state.data.length; i += VectorState.vecLength) {
-            datc[i] = state.data[i] * state.datb[i];
+            state.datc[i] = state.data[i] * state.datb[i];
         }
-        return datc;
+        return state.datc;
     }
 
     @Benchmark
@@ -76,10 +76,9 @@ public class VectorProfiling {
     @Warmup(iterations=2, time=2)
     @Measurement(iterations=3, time=2)
     public int[] mulRegularNoSuperWord(VectorState state) {
-        int[] datc = new int[4096];
         for(int i = 0; i < state.data.length; i += VectorState.vecLength) {
-            datc[i] = state.data[i] * state.datb[i];
+            state.datc[i] = state.data[i] * state.datb[i];
         }
-        return datc;
+        return state.datc;
     }
 }
