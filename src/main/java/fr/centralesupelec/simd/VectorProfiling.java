@@ -40,9 +40,21 @@ public class VectorProfiling {
     @Benchmark
     @Warmup(iterations=2, time=2)
     @Measurement(iterations=3, time=2)
-    public long sumRegualar(VectorState state) {
+    public long sumRegular(VectorState state) {
         long sum = 0;
         for(int i = 0; i < state.data.length; ++i) {
+            sum += state.data[i];
+        }
+        return sum;
+    }
+
+    @Benchmark
+    @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
+    @Warmup(iterations = 2, time = 2)
+    @Measurement(iterations = 3, time = 2)
+    public long sumRegularNoSuperWord(VectorState state) {
+        long sum = 0;
+        for (int i = 0; i < state.data.length; ++i) {
             sum += state.data[i];
         }
         return sum;
@@ -99,6 +111,17 @@ public class VectorProfiling {
     @Warmup(iterations = 2, time = 2)
     @Measurement(iterations = 3, time = 2)
     public int[] addRegular(VectorState state) {
+        for (int i = 0; i < state.data.length; ++i) {
+            state.datc[i] = state.data[i] + state.datb[i];
+        }
+        return state.datc;
+    }
+
+    @Benchmark
+    @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
+    @Warmup(iterations = 2, time = 2)
+    @Measurement(iterations = 3, time = 2)
+    public int[] addRegularNoSuperWord(VectorState state) {
         for (int i = 0; i < state.data.length; ++i) {
             state.datc[i] = state.data[i] + state.datb[i];
         }
