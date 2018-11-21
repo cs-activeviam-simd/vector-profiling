@@ -11,6 +11,7 @@ public class VectorProfiling {
     public static class VectorState {
         private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
+        public static final int bitSize = sInt.bitSize();
         int[] data = new int[4096];
         int[] datb = new int[4096];
 

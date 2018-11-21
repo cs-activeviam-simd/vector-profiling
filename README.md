@@ -35,4 +35,10 @@ Then, in a shell, run:
 ```shell
 $JAVA_HOME/bin/java -jar target/simd.jar
 ```
+
+To automatically write the compiled assembly from the benchmark methods into `results/`, run:
+```shell
+$JAVA_HOME/bin/java -cp target/simd.jar fr.centralesupelec.simd.AsmLogger
+```
+
 Ignore any warnings regarding the use of incubator modules or illegal reflective accesses.

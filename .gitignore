@@ -3,3 +3,4 @@
 /out/
 /*.iml
 hs_err_*.log
+/results/
