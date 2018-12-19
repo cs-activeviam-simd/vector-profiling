@@ -3,12 +3,15 @@ package fr.centralesupelec.simd;
 import jdk.incubator.vector.*;
 import org.openjdk.jmh.annotations.*;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Fork(jvmArgsAppend = {"--add-modules", "jdk.incubator.vector"})
+@BenchmarkMode(Mode.AverageTime) @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class VectorProfiling {
 
     @State(Scope.Thread)
     public static class VectorState {
+
         private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
         public static final int bitSize = sInt.bitSize();
