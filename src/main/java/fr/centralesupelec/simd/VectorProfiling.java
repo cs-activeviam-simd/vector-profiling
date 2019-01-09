@@ -5,19 +5,23 @@ import org.openjdk.jmh.annotations.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-@Fork(jvmArgsAppend = {"--add-modules", "jdk.incubator.vector"})
+@Fork(jvmArgsAppend = {"--add-modules", "jdk.incubator.vector"}, value = 2)
 @BenchmarkMode(Mode.AverageTime) @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class VectorProfiling {
+
 
     @State(Scope.Thread)
     public static class VectorState {
 
+        @Param({"512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072", "262144", "524288", "1048576", "2097152", "4194304", "8388608", "16777216", "33554432", "67108864"})
+        public int array_size;
+
         private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
         public static final int bitSize = sInt.bitSize();
-        int[] data = new int[4096];
-        int[] datb = new int[4096];
-        int[] datc = new int[4096];
+        int[] data = new int[array_size];
+        int[] datb = new int[array_size];
+        int[] datc = new int[array_size];
 
         @Setup(Level.Trial)
         public void doSetup() {
