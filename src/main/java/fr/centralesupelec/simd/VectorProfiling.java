@@ -19,13 +19,17 @@ public class VectorProfiling {
         private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
         public static final int bitSize = sInt.bitSize();
-        int[] a = new int[ARRAY_LENGTH];
-        int[] b = new int[ARRAY_LENGTH];
-        int[] c = new int[ARRAY_LENGTH];
+        int[] a;
+        int[] b;
+        int[] c;
         int filter;
 
         @Setup(Level.Trial)
         public void doSetup() {
+            a = new int[ARRAY_LENGTH];
+            b = new int[ARRAY_LENGTH];
+            c = new int[ARRAY_LENGTH];
+
             Random rnd = new Random();
             for (int i = 0; i < a.length; i++) {
                 a[i] = rnd.nextInt();
