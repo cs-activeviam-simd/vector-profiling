@@ -4,8 +4,20 @@ import itertools
 import math
 from matplotlib import pyplot as plt
 import matplotlib
+import argparse
+
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description='Trace graphs for SIMD benchmark from JMH json output.')
+    parser.add_argument('json_file', metavar='file', type=str,
+                        help='File to read the json from')
+    parser.add_argument(
+        '--suffix', help='Regular or RegularNoSuperWord', default='RegularNoSuperWord')
+    args = parser.parse_args()
+    print(args)
+
     with open(sys.argv[1], 'r') as file:
         res_json = file.read()
         res_list = json.loads(res_json)
@@ -26,14 +38,8 @@ if __name__ == "__main__":
         for operation in operations:
             prefix = 'fr.centralesupelec.simd.VectorProfiling.' + operation
 
-            # regular_list = list(zip(
-            #     *bench_results[prefix +
-            #                    'RegularNoSuperWord']
-            # ))
-
             regular_list = list(zip(
-                *bench_results[prefix +
-                               'Regular']
+                *bench_results[prefix + args.suffix]
             ))
 
             regular_list.sort(key=lambda res: int(res[0]))
@@ -49,11 +55,6 @@ if __name__ == "__main__":
             bench_results_ratio[operation] = [int(x[0])
                                               for x in simd_list], ratio_list
 
-        # log_axis = {}
-        # for bench in bench_results_ratio.keys():
-        #     log_axis[bench] = [math.log(array_size)
-        #                        for array_size in bench_results_ratio[bench][0]]
-
         colors = itertools.cycle(["r", "b", "g", "violet"])
 
         plt.figure(num=None, figsize=(16, 6), dpi=80,
@@ -65,7 +66,7 @@ if __name__ == "__main__":
             plt.plot(
                 bench_results_ratio[bench][0], bench_results_ratio[bench][1], label=bench, color=next(colors), linestyle='--', marker='o')
         plt.legend()
-        plt.title("Ratio of time per operation Regular / SIMD")
+        plt.title("Ratio of time per operation {} / SIMD".format(args.suffix))
         plt.xlabel("Int Array Size")
-        plt.savefig("graph-reg-simd", quality=10)
+        plt.savefig("graph-{}-simd".format(args.suffix), quality=10)
         # plt.show()
