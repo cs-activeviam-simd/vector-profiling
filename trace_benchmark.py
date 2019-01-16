@@ -1,9 +1,12 @@
 import json
+import sys
 import itertools
+import math
 from matplotlib import pyplot as plt
+import matplotlib
 
 if __name__ == "__main__":
-    with open("bench_res.json", 'r') as file:
+    with open(sys.argv[1], 'r') as file:
         res_json = file.read()
         res_list = json.loads(res_json)
 
@@ -14,17 +17,23 @@ if __name__ == "__main__":
                 bench_results[benchmark['benchmark']] = [], []
             # axis
             bench_results[benchmark['benchmark']][0].append(
-                benchmark['params']['array_size'])  # axis
+                benchmark['params']['ARRAY_LENGTH'])  # axis
             bench_results[benchmark['benchmark']][1].append(
                 benchmark['primaryMetric']['score'])  # ordonee
 
         bench_results_ratio = {}
-        for operation in ['mul', 'sum', 'add']:
+        operations = ['mul', 'sum', 'add', 'filterSum']
+        for operation in operations:
             prefix = 'fr.centralesupelec.simd.VectorProfiling.' + operation
+
+            # regular_list = list(zip(
+            #     *bench_results[prefix +
+            #                    'RegularNoSuperWord']
+            # ))
 
             regular_list = list(zip(
                 *bench_results[prefix +
-                               'RegularNoSuperWord']
+                               'Regular']
             ))
 
             regular_list.sort(key=lambda res: int(res[0]))
@@ -40,18 +49,23 @@ if __name__ == "__main__":
             bench_results_ratio[operation] = [int(x[0])
                                               for x in simd_list], ratio_list
 
-        colors = itertools.cycle(["r", "b", "g"])
-        plt.subplot(2, 1, 1)
+        # log_axis = {}
+        # for bench in bench_results_ratio.keys():
+        #     log_axis[bench] = [math.log(array_size)
+        #                        for array_size in bench_results_ratio[bench][0]]
+
+        colors = itertools.cycle(["r", "b", "g", "violet"])
+
+        plt.figure(num=None, figsize=(16, 6), dpi=80,
+                   facecolor='w', edgecolor='k')
+        plt.subplot(1, 1, 1)
+        plt.xscale("log", basex=2)
         for bench in bench_results_ratio.keys():
+            print(bench_results_ratio[bench])
             plt.plot(
-                bench_results_ratio[bench][0], bench_results_ratio[bench][1], label=bench, color=next(colors))
+                bench_results_ratio[bench][0], bench_results_ratio[bench][1], label=bench, color=next(colors), linestyle='--', marker='o')
         plt.legend()
-        plt.title("Ration of time per operation RegularNoSuperWord / SIMD")
+        plt.title("Ratio of time per operation Regular / SIMD")
         plt.xlabel("Int Array Size")
-        plt.subplot(2, 1, 2)
-        for bench in bench_results_ratio.keys():
-            plt.plot(
-                bench_results_ratio[bench][0][:7], bench_results_ratio[bench][1][:7], label=bench, color=next(colors))
-        plt.legend()
-        plt.xlabel("Int Array Size")
-        plt.show()
+        plt.savefig("graph-reg-simd", quality=10)
+        # plt.show()
