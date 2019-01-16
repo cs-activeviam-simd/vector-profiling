@@ -16,9 +16,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--suffix', help='Regular or RegularNoSuperWord', default='RegularNoSuperWord')
     args = parser.parse_args()
-    print(args)
 
-    with open(sys.argv[1], 'r') as file:
+    with open(args.file, 'r') as file:
         res_json = file.read()
         res_list = json.loads(res_json)
 
@@ -62,7 +61,6 @@ if __name__ == "__main__":
         plt.subplot(1, 1, 1)
         plt.xscale("log", basex=2)
         for bench in bench_results_ratio.keys():
-            print(bench_results_ratio[bench])
             plt.plot(
                 bench_results_ratio[bench][0], bench_results_ratio[bench][1], label=bench, color=next(colors), linestyle='--', marker='o')
         plt.legend()
