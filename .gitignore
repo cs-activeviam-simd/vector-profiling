@@ -4,3 +4,4 @@
 /*.iml
 hs_err_*.log
 /results/
+jmh-result.json

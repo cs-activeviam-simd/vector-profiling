@@ -17,6 +17,7 @@ public class VectorProfiling {
 
         @Param({"512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072", "262144", "524288", "1048576", "2097152", "4194304", "8388608", "16777216", "33554432", "67108864"})
         public int ARRAY_LENGTH;
+        private static final int ARRAY_BOUND = 12;
 
         private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
@@ -51,15 +52,15 @@ public class VectorProfiling {
                 a[i] = rnd.nextInt();
                 b[i] = rnd.nextInt();
                 c[i] = rnd.nextInt();
-                aSmall[i] = rnd.nextInt(2);
-                bSmall[i] = rnd.nextInt(2);
-                cSmall[i] = rnd.nextInt(2);
-                dSmall[i] = rnd.nextInt(2);
+                aSmall[i] = rnd.nextInt(ARRAY_BOUND);
+                bSmall[i] = rnd.nextInt(ARRAY_BOUND);
+                cSmall[i] = rnd.nextInt(ARRAY_BOUND);
+                dSmall[i] = rnd.nextInt(ARRAY_BOUND);
             }
-            fa = rnd.nextInt(2);
-            fb = rnd.nextInt(2);
-            fc = rnd.nextInt(2);
-            fd = rnd.nextInt(2);
+            fa = rnd.nextInt(ARRAY_BOUND);
+            fb = rnd.nextInt(ARRAY_BOUND);
+            fc = rnd.nextInt(ARRAY_BOUND);
+            fd = rnd.nextInt(ARRAY_BOUND);
         }
     }
 
@@ -148,154 +149,139 @@ public class VectorProfiling {
     }
 
     @Benchmark
-    public long filterSIMD(VectorState state) {
-        long sum = 0;
+    public boolean filterSIMD(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
             Mask m = va.equal(state.fa);
-            sum += m.trueCount();
+            blackhole ^= m.getElement(0);
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterRegular(VectorState state) {
-        long sum = 0;
+    public boolean filterRegular(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
-            if(state.aSmall[i] == state.fa) {
-                ++sum;
-            }
+            blackhole ^= state.aSmall[i] == state.fa;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
     @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
-    public long filterRegularNoSuperWord(VectorState state) {
-        long sum = 0;
+    public boolean filterRegularNoSuperWord(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
-            if(state.aSmall[i] == state.fa) {
-                ++sum;
-            }
+            blackhole ^= state.aSmall[i] == state.fa;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterOr2SIMD(VectorState state) {
-        long sum = 0;
+    public boolean filterOr2SIMD(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
             Mask ma = va.equal(state.fa);
             Mask mb = va.equal(state.fb);
-            sum += ma.or(mb).trueCount();
+            blackhole ^= ma.or(mb).getElement(0);
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterOr2Regular(VectorState state) {
-        long sum = 0;
+    public boolean filterOr2Regular(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
             int a = state.aSmall[i];
-            if(a == state.fa || a == state.fb) {
-                ++sum;
-            }
+            blackhole ^= a == state.fa || a == state.fb;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
     @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
-    public long filterOr2RegularNoSuperWord(VectorState state) {
-        long sum = 0;
+    public boolean filterOr2RegularNoSuperWord(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
             int a = state.aSmall[i];
-            if(a == state.fa || a == state.fb) {
-                ++sum;
-            }
+            blackhole ^= a == state.fa || a == state.fb;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterOr4SIMD(VectorState state) {
-        long sum = 0;
+    public boolean filterOr4SIMD(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
             Mask m = va.equal(state.fa);
             m = m.or(va.equal(state.fb));
             m = m.or(va.equal(state.fc));
             m = m.or(va.equal(state.fd));
-            sum += m.trueCount();
+            blackhole ^= m.getElement(0);
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterOr4Regular(VectorState state) {
-        long sum = 0;
+    public boolean filterOr4Regular(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
             int a = state.aSmall[i];
-            if(a == state.fa || a == state.fb || a == state.fc || a == state.fd) {
-                ++sum;
-            }
+            blackhole ^= a == state.fa || a == state.fb || a == state.fc || a == state.fd;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
     @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
-    public long filterOr4RegularNoSuperWord(VectorState state) {
-        long sum = 0;
+    public boolean filterOr4RegularNoSuperWord(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
             int a = state.aSmall[i];
-            if(a == state.fa || a == state.fb || a == state.fc || a == state.fd) {
-                ++sum;
-            }
+            blackhole ^= a == state.fa || a == state.fb || a == state.fc || a == state.fd;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterAnd2SIMD(VectorState state) {
-        long sum = 0;
+    public boolean filterAnd2SIMD(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
             Mask ma = va.equal(state.fa);
+
             IntVector vb = VectorState.sInt.fromArray(state.bSmall, i);
             Mask mb = vb.equal(state.fb);
-            sum += ma.and(mb).trueCount();
+            blackhole ^= ma.and(mb).getElement(0);
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterAnd2Regular(VectorState state) {
-        long sum = 0;
+    public boolean filterAnd2Regular(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
-            if(state.aSmall[i] == state.fa && state.bSmall[i] == state.fb) {
-                ++sum;
-            }
+            blackhole ^= state.aSmall[i] == state.fa && state.bSmall[i] == state.fb;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
     @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
-    public long filterAnd2RegularNoSuperWord(VectorState state) {
-        long sum = 0;
+    public boolean filterAnd2RegularNoSuperWord(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
-            if(state.aSmall[i] == state.fa && state.bSmall[i] == state.fb) {
-                ++sum;
-            }
+            blackhole ^= state.aSmall[i] == state.fa && state.bSmall[i] == state.fb;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterAnd4SIMD(VectorState state) {
-        long sum = 0;
+    public boolean filterAnd4SIMD(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
             IntVector v = VectorState.sInt.fromArray(state.aSmall, i);
             Mask m = v.equal(state.fa);
@@ -305,32 +291,28 @@ public class VectorProfiling {
             m = m.and(v.equal(state.fc));
             v = VectorState.sInt.fromArray(state.dSmall, i);
             m = m.and(v.equal(state.fd));
-            sum += m.trueCount();
+            blackhole ^= m.getElement(0);
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
-    public long filterAnd4Regular(VectorState state) {
-        long sum = 0;
+    public boolean filterAnd4Regular(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
-            if(state.aSmall[i] == state.fa && state.bSmall[i] == state.fb && state.cSmall[i] == state.fc && state.dSmall[i] == state.fd) {
-                ++sum;
-            }
+            blackhole ^= state.aSmall[i] == state.fa && state.bSmall[i] == state.fb && state.cSmall[i] == state.fc && state.dSmall[i] == state.fd;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
     @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
-    public long filterAnd4RegularNoSuperWord(VectorState state) {
-        long sum = 0;
+    public boolean filterAnd4RegularNoSuperWord(VectorState state) {
+        boolean blackhole = false;
         for (int i = 0; i < state.aSmall.length; ++i) {
-            if(state.aSmall[i] == state.fa && state.bSmall[i] == state.fb && state.cSmall[i] == state.fc && state.dSmall[i] == state.fd) {
-                ++sum;
-            }
+            blackhole ^= state.aSmall[i] == state.fa && state.bSmall[i] == state.fb && state.cSmall[i] == state.fc && state.dSmall[i] == state.fd;
         }
-        return sum;
+        return blackhole;
     }
 
     @Benchmark
@@ -363,6 +345,27 @@ public class VectorProfiling {
             if(state.aSmall[i] <= state.fa) {
                 sum += state.bSmall[i];
             }
+        }
+        return sum;
+    }
+
+    @Benchmark
+    public long filterSumBranchlessRegular(VectorState state) {
+        long sum = 0;
+        for (int i = 0; i < state.aSmall.length; ++i) {
+            int n = state.aSmall[i] - state.fa;
+            sum += (~(n >> 31) & ~((-n) >> 31)) & state.bSmall[i];
+        }
+        return sum;
+    }
+
+    @Benchmark
+    @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
+    public long filterSumBranchlessRegularNoSuperWord(VectorState state) {
+        long sum = 0;
+        for (int i = 0; i < state.aSmall.length; ++i) {
+            int n = state.aSmall[i] - state.fa;
+            sum += (~(n >> 31) & ~((-n) >> 31)) & state.bSmall[i];
         }
         return sum;
     }
