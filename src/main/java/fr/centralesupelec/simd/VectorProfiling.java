@@ -93,6 +93,19 @@ public class VectorProfiling {
     }
 
     @Benchmark
+    @Fork(jvmArgsAppend = { "--add-modules", "jdk.incubator.vector", "-XX:-UseSuperWord" })
+    public long sumGroupedSIMD(VectorState state) {
+        long sum = 0;
+        IntVector vc = VectorState.sInt.zero();
+        for (int i = 0; i < state.a.length; i += VectorState.vecLength) {
+            IntVector va = VectorState.sInt.fromArray(state.a, i);
+            vc.add(va);
+        }
+        sum = vc.addAll();
+        return sum;
+    }
+
+    @Benchmark
     public int[] mulSIMD(VectorState state) {
         for(int i = 0; i < state.a.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.a, i);

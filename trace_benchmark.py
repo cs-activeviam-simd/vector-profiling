@@ -17,7 +17,7 @@ if __name__ == "__main__":
         '--suffix', help='Regular or RegularNoSuperWord', default='RegularNoSuperWord')
     args = parser.parse_args()
 
-    with open(args.file, 'r') as file:
+    with open(args.json_file, 'r') as file:
         res_json = file.read()
         res_list = json.loads(res_json)
 
@@ -34,6 +34,9 @@ if __name__ == "__main__":
 
         bench_results_ratio = {}
         operations = ['mul', 'sum', 'add', 'filterSum']
+        # operations = ['filterSum', 'filterAnd2',
+        #               'filterAnd4', 'filterOr2', 'filterOr4', 'filter']
+        # operations = ['filterSum']
         for operation in operations:
             prefix = 'fr.centralesupelec.simd.VectorProfiling.' + operation
 
@@ -54,7 +57,7 @@ if __name__ == "__main__":
             bench_results_ratio[operation] = [int(x[0])
                                               for x in simd_list], ratio_list
 
-        colors = itertools.cycle(["r", "b", "g", "violet"])
+        colors = itertools.cycle(["r", "b", "g", "violet", "orange", "yellow"])
 
         plt.figure(num=None, figsize=(16, 6), dpi=80,
                    facecolor='w', edgecolor='k')
@@ -67,4 +70,4 @@ if __name__ == "__main__":
         plt.title("Ratio of time per operation {} / SIMD".format(args.suffix))
         plt.xlabel("Int Array Size")
         plt.savefig("graph-{}-simd".format(args.suffix), quality=10)
-        # plt.show()
+        plt.show()
