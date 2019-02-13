@@ -19,7 +19,7 @@ if __name__ == "__main__":
         '--comparisonSuffix', help='SIMD or GroupedSIMD', default='SIMD')
 
     parser.add_argument(
-        '--functions', help='functions to compare, separated by spaces (such as sums)', default='mul sum add filterSum', nargs='+')
+        '--functions', help='functions to compare, separated by spaces (such as mul sum add filterSum \n filterSum filterAnd2 filterAnd4 filterOr2 filterOr4 filter', default='mul sum add filterSum', nargs='+')
 
     args = parser.parse_args()
 
