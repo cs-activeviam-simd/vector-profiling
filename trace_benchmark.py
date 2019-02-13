@@ -14,7 +14,13 @@ if __name__ == "__main__":
     parser.add_argument('json_file', metavar='file', type=str,
                         help='File to read the json from')
     parser.add_argument(
-        '--suffix', help='Regular or RegularNoSuperWord', default='RegularNoSuperWord')
+        '--baseSuffix', help='Regular or RegularNoSuperWord', default='RegularNoSuperWord')
+    parser.add_argument(
+        '--comparisonSuffix', help='SIMD or GroupedSIMD', default='SIMD')
+
+    parser.add_argument(
+        '--functions', help='functions to compare, separated by spaces (such as sums)', default='mul sum add filterSum', nargs='+')
+
     args = parser.parse_args()
 
     with open(args.json_file, 'r') as file:
@@ -33,29 +39,29 @@ if __name__ == "__main__":
                 benchmark['primaryMetric']['score'])  # ordonee
 
         bench_results_ratio = {}
-        operations = ['mul', 'sum', 'add', 'filterSum']
-        # operations = ['filterSum', 'filterAnd2',
-        #               'filterAnd4', 'filterOr2', 'filterOr4', 'filter']
+        # operations = ['mul', 'sum', 'add', 'filterSum']
+        operations = ['filterSum', 'filterAnd2',
+                      'filterAnd4', 'filterOr2', 'filterOr4', 'filter']
         # operations = ['filterSum']
-        for operation in operations:
+        for operation in args.functions:
             prefix = 'fr.centralesupelec.simd.VectorProfiling.' + operation
 
             regular_list = list(zip(
-                *bench_results[prefix + args.suffix]
+                *bench_results[prefix + args.baseSuffix]
             ))
 
             regular_list.sort(key=lambda res: int(res[0]))
 
             simd_list = list(zip(
-                *bench_results[prefix +
-                               'SIMD']
+                *bench_results[prefix + args.comparisonSuffix]
             ))
             simd_list.sort(key=lambda res: int(res[0]))
+
             ratio_list = [regular_list[i][1] / simd_list[i][1]
                           for i in range(len(simd_list))]
 
-            bench_results_ratio[operation] = [int(x[0])
-                                              for x in simd_list], ratio_list
+            bench_results_ratio[operation] = [
+                int(x[0]) for x in simd_list], ratio_list
 
         colors = itertools.cycle(["r", "b", "g", "violet", "orange", "yellow"])
 
@@ -67,7 +73,9 @@ if __name__ == "__main__":
             plt.plot(
                 bench_results_ratio[bench][0], bench_results_ratio[bench][1], label=bench, color=next(colors), linestyle='--', marker='o')
         plt.legend()
-        plt.title("Ratio of time per operation {} / SIMD".format(args.suffix))
+        plt.title(
+            "Ratio of time per operation {} / {}".format(args.comparisonSuffix, args.baseSuffix))
         plt.xlabel("Int Array Size")
-        plt.savefig("graph-{}-simd".format(args.suffix), quality=10)
+        plt.savefig("graph-{}-{}".format(args.comparisonSuffix,
+                                         args.baseSuffix), quality=10)
         plt.show()
