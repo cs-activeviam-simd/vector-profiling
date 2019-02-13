@@ -18,10 +18,14 @@ if __name__ == "__main__":
     parser.add_argument(
         '--comparisonSuffix', help='SIMD or GroupedSIMD', default='SIMD')
 
+    parser.add_argument('--noJavaPrefix', action='store_true', default=False)
+
     parser.add_argument(
         '--functions', help='functions to compare, separated by spaces (such as mul sum add filterSum \n filterSum filterAnd2 filterAnd4 filterOr2 filterOr4 filter', default='mul sum add filterSum', nargs='+')
 
     args = parser.parse_args()
+
+    print(args.noJavaPrefix)
 
     with open(args.json_file, 'r') as file:
         res_json = file.read()
@@ -45,6 +49,8 @@ if __name__ == "__main__":
         # operations = ['filterSum']
         for operation in args.functions:
             prefix = 'fr.centralesupelec.simd.VectorProfiling.' + operation
+            if args.noJavaPrefix:
+                prefix = operation
 
             regular_list = list(zip(
                 *bench_results[prefix + args.baseSuffix]
