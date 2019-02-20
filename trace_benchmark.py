@@ -80,7 +80,7 @@ if __name__ == "__main__":
                 bench_results_ratio[bench][0], bench_results_ratio[bench][1], label=bench, color=next(colors), linestyle='--', marker='o')
         plt.legend()
         plt.title(
-            "Ratio of time per operation {} / {}".format(args.comparisonSuffix, args.baseSuffix))
+            "Ratio of time per operation {} / {}".format(args.baseSuffix, args.comparisonSuffix))
         plt.xlabel("Int Array Size")
         plt.savefig("graph-{}-{}".format(args.comparisonSuffix,
                                          args.baseSuffix), quality=10)

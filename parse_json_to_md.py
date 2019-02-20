@@ -4,10 +4,10 @@ import argparse
 
 parser = argparse.ArgumentParser(
     description='Parse JSON to md array format')
-parser.add_argument('json_file_512', metavar='file', type=str,
-                    help='File to read the json from')
-parser.add_argument('json_file_256', metavar='file', type=str,
-                    help='File to read the json from')
+parser.add_argument('--json_file_512', metavar='file', type=str,
+                    help='File to read the json from', default=None)
+parser.add_argument('--json_file_256', metavar='file', type=str,
+                    help='File to read the json from', default=None)
 
 # ARRAY_LENGTH > Benchmark SUFF > 512 & 256
 # Array per length
@@ -36,8 +36,10 @@ def humanbytes(B):
 
 
 def convert_dict(benchmark_file_512, benchmark_file_256):
-    benchmark_list_512 = json.loads(benchmark_file_512.read())
-    benchmark_list_256 = json.loads(benchmark_file_256.read())
+    benchmark_list_512 = json.loads(
+        benchmark_file_512.read()) if benchmark_file_512 else []
+    benchmark_list_256 = json.loads(
+        benchmark_file_256.read()) if benchmark_file_256 else []
 
     bench_results = {}
 
@@ -58,14 +60,26 @@ def convert_dict(benchmark_file_512, benchmark_file_256):
     return bench_results
 
 
-with open(args.json_file_512, 'r') as file_512:
-    with open(args.json_file_256, 'r') as file_256:
-        bench_results = convert_dict(file_512, file_256)
-        for arr_length in sorted(bench_results.keys(), key=lambda length: int(length)):
-            print("## {}".format(humanbytes(int(arr_length)*4)))
-            print("| Benchmark | ns/op(SIMD512) | ns/op(SIMD256)")
-            print("| -------- | -------- | -------- |")
+file_512 = open(args.json_file_512, 'r') if args.json_file_512 else None
+file_256 = open(args.json_file_256, 'r') if args.json_file_256 else None
 
-            for bench in sorted(bench_results[arr_length].keys()):
-                print("| {} | {:.2f} | {:.2f} |".format(
-                    bench, *bench_results[arr_length][bench]))
+bench_results = convert_dict(file_512, file_256)
+
+if file_512 and file_256:
+    for arr_length in sorted(bench_results.keys(), key=lambda length: int(length)):
+        print("## {}".format(humanbytes(int(arr_length)*4)))
+        print("| Benchmark | ns/op(SIMD512) | ns/op(SIMD256) |")
+        print("| -------- | -------- | -------- |")
+
+        for bench in sorted(bench_results[arr_length].keys()):
+            print("| {} | {:.2f} | {:.2f} |".format(
+                bench, *bench_results[arr_length][bench]))
+else:
+    for arr_length in sorted(bench_results.keys(), key=lambda length: int(length)):
+        print("## {}".format(humanbytes(int(arr_length)*4)))
+        print("| Benchmark | ns/op({}) |".format("SIMD512" if args.json_file_512 else "SIMD256"))
+        print("| -------- | -------- |")
+
+        for bench in sorted(bench_results[arr_length].keys()):
+            print("| {} | {:.2f} |".format(
+                bench, bench_results[arr_length][bench]))
