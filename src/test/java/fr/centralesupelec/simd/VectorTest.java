@@ -10,7 +10,7 @@ import static fr.centralesupelec.simd.VectorProfiling.VectorState;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class VectorTests {
+class VectorTest {
     
     private static VectorState state = new VectorState();
     private static VectorProfiling v = new VectorProfiling();
