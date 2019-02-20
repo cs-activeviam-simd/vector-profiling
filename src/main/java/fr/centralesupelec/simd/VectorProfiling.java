@@ -6,7 +6,7 @@ import org.openjdk.jmh.annotations.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-/** @noinspection unchecked*/
+@SuppressWarnings("unchecked")
 @Fork(jvmArgsPrepend = {"--add-modules", "jdk.incubator.vector", "-Djdk.incubator.vector.VECTOR_ACCESS_OOB_CHECK=0"}, value = 2)
 @BenchmarkMode(Mode.AverageTime) @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(iterations = 3, time = 2)
@@ -22,7 +22,7 @@ public class VectorProfiling {
 
         private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
-        public static final int bitSize = sInt.bitSize();
+        static final int bitSize = sInt.bitSize();
         int[] a;
         int[] b;
         int[] c;
@@ -70,7 +70,7 @@ public class VectorProfiling {
 
     @Benchmark
     @Fork(jvmArgsAppend = {  "-XX:-UseSuperWord" })
-    public long sumSIMD(VectorState state) {
+    public int sumSIMD(VectorState state) {
         IntVector vs = VectorState.sInt.zero();
         for (int i = 0; i < state.a.length; i += VectorState.vecLength) {
             IntVector va = VectorState.sInt.fromArray(state.a, i);
@@ -80,8 +80,8 @@ public class VectorProfiling {
     }
 
     @Benchmark
-    public long sumRegular(VectorState state) {
-        long sum = 0;
+    public int sumRegular(VectorState state) {
+        int sum = 0;
         for(int i = 0; i < state.a.length; ++i) {
             sum += state.a[i];
         }
@@ -90,8 +90,8 @@ public class VectorProfiling {
 
     @Benchmark
     @Fork(jvmArgsAppend = { "-XX:-UseSuperWord" })
-    public long sumRegularNoSuperWord(VectorState state) {
-        long sum = 0;
+    public int sumRegularNoSuperWord(VectorState state) {
+        int sum = 0;
         for (int i = 0; i < state.a.length; ++i) {
             sum += state.a[i];
         }
