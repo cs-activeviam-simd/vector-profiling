@@ -19,11 +19,11 @@ public class VectorProfiling {
     @State(Scope.Thread)
     public static class VectorState {
 
-        @Param({"512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072", "262144", "524288", "1048576", "2097152", "4194304", "8388608", "16777216", "33554432", "67108864"})
+        @Param({"512", "1024"})
         public int ARRAY_LENGTH;
         private static final int ARRAY_BOUND = 12;
 
-        private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
+        private static final IntVector.IntSpecies sInt = IntVector.preferredSpecies();
         private static final int vecLength = sInt.length();
         static final int bitSize = sInt.bitSize();
         int[] a;
@@ -77,7 +77,7 @@ public class VectorProfiling {
     public final int sumSIMD(VectorState state) {
         IntVector vs = VectorState.sInt.zero();
         for (int i = 0; i < state.a.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.a, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt, state.a, i);
             vs = vs.add(va);
         }
         return vs.addAll();
@@ -105,8 +105,8 @@ public class VectorProfiling {
     @Benchmark
     public final int[] mulSIMD(VectorState state) {
         for(int i = 0; i < state.a.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.a, i);
-            IntVector vb = VectorState.sInt.fromArray(state.b, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt, state.a, i);
+            IntVector vb = IntVector.fromArray(VectorState.sInt, state.b, i);
             IntVector vc = va.mul(vb);
             vc.intoArray(state.c, i);
         }
@@ -133,8 +133,8 @@ public class VectorProfiling {
     @Benchmark
     public final int[] addSIMD(VectorState state) {
         for (int i = 0; i < state.a.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.a, i);
-            IntVector vb = VectorState.sInt.fromArray(state.b, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt, state.a, i);
+            IntVector vb = IntVector.fromArray(VectorState.sInt, state.b, i);
             IntVector vc = va.add(vb);
             vc.intoArray(state.c, i);
         }
@@ -163,7 +163,7 @@ public class VectorProfiling {
         boolean blackhole = false;
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt, state.aSmall, i);
             Mask m = va.equal(vfa);
             blackhole ^= m.getElement(0);
         }
@@ -195,7 +195,7 @@ public class VectorProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt, state.aSmall, i);
             Mask ma = va.equal(vfa);
             Mask mb = va.equal(vfb);
             blackhole ^= ma.or(mb).getElement(0);
@@ -232,7 +232,7 @@ public class VectorProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt, state.aSmall, i);
             Mask m = va.equal(vfa);
             m = m.or(va.equal(vfb));
             m = m.or(va.equal(vfc));
@@ -269,9 +269,9 @@ public class VectorProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt,state.aSmall, i);
             Mask ma = va.equal(vfa);
-            IntVector vb = VectorState.sInt.fromArray(state.bSmall, i);
+            IntVector vb = IntVector.fromArray(VectorState.sInt, state.bSmall, i);
             Mask mb = vb.equal(vfb);
             blackhole ^= ma.and(mb).getElement(0);
         }
@@ -305,13 +305,13 @@ public class VectorProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector v = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector v = IntVector.fromArray(VectorState.sInt, state.aSmall, i);
             Mask m = v.equal(vfa);
-            v = VectorState.sInt.fromArray(state.bSmall, i);
+            v = IntVector.fromArray(VectorState.sInt, state.bSmall, i);
             m = m.and(v.equal(vfb));
-            v = VectorState.sInt.fromArray(state.cSmall, i);
+            v = IntVector.fromArray(VectorState.sInt,state.cSmall, i);
             m = m.and(v.equal(vfc));
-            v = VectorState.sInt.fromArray(state.dSmall, i);
+            v = IntVector.fromArray(VectorState.sInt,state.dSmall, i);
             m = m.and(v.equal(vfd));
             blackhole ^= m.getElement(0);
         }
@@ -342,9 +342,9 @@ public class VectorProfiling {
         IntVector vs = VectorState.sInt.zero();
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
-            vs = VectorState.sInt.fromArray(state.bSmall, i, m).add(vs);
+            vs = IntVector.fromArray(VectorState.sInt,state.bSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -400,10 +400,10 @@ public class VectorProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
             m = m.or(va.equal(vfb));
-            vs = VectorState.sInt.fromArray(state.bSmall, i, m).add(vs);
+            vs = IntVector.fromArray(VectorState.sInt,state.bSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -441,12 +441,12 @@ public class VectorProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector va = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector va = IntVector.fromArray(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
             m = m.or(va.equal(vfb));
             m = m.or(va.equal(vfc));
             m = m.or(va.equal(vfd));
-            vs = VectorState.sInt.fromArray(state.bSmall, i, m).add(vs);
+            vs = IntVector.fromArray(VectorState.sInt,state.bSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -482,11 +482,11 @@ public class VectorProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector v = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector v = IntVector.fromArray(VectorState.sInt,state.aSmall, i);
             Mask m = v.equal(vfa);
-            v = VectorState.sInt.fromArray(state.bSmall, i);
+            v = IntVector.fromArray(VectorState.sInt,state.bSmall, i);
             m = m.and(v.equal(vfb));
-            vs = VectorState.sInt.fromArray(state.cSmall, i, m).add(vs);
+            vs = IntVector.fromArray(VectorState.sInt,state.cSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -522,15 +522,15 @@ public class VectorProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.length; i += VectorState.vecLength) {
-            IntVector v = VectorState.sInt.fromArray(state.aSmall, i);
+            IntVector v = IntVector.fromArray(VectorState.sInt,state.aSmall, i);
             Mask m = v.equal(vfa);
-            v = VectorState.sInt.fromArray(state.bSmall, i);
+            v = IntVector.fromArray(VectorState.sInt,state.bSmall, i);
             m = m.and(v.equal(vfb));
-            v = VectorState.sInt.fromArray(state.cSmall, i);
+            v = IntVector.fromArray(VectorState.sInt,state.cSmall, i);
             m = m.and(v.equal(vfc));
-            v = VectorState.sInt.fromArray(state.dSmall, i);
+            v = IntVector.fromArray(VectorState.sInt,state.dSmall, i);
             m = m.and(v.equal(vfd));
-            vs = VectorState.sInt.fromArray(state.eSmall, i, m).add(vs);
+            vs = IntVector.fromArray(VectorState.sInt,state.eSmall, i, m).add(vs);
         }
         return vs.addAll();
     }

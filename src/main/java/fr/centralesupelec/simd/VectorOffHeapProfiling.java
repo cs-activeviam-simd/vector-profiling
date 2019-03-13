@@ -30,11 +30,11 @@ public class VectorOffHeapProfiling {
     @State(Scope.Thread)
     public static class VectorState {
 
-        @Param({"512", "1024", "2048", "4096", "8192", "16384", "32768", "65536", "131072", "262144", "524288", "1048576", "2097152", "4194304", "8388608", "16777216", "33554432", "67108864"})
+        @Param({"512", "1024"})
         public int ARRAY_LENGTH;
         private static final int ARRAY_BOUND = 12;
 
-        private static final IntVector.IntSpecies<?> sInt = IntVector.preferredSpecies();
+        private static final IntVector.IntSpecies sInt = IntVector.preferredSpecies();
         static final int vecBytes = sInt.bitSize() / Byte.SIZE;
         ByteBuffer a; IntBuffer ia;
         ByteBuffer b; IntBuffer ib;
@@ -97,7 +97,7 @@ public class VectorOffHeapProfiling {
     public final int sumSIMD(VectorState state) {
         IntVector vs = VectorState.sInt.zero();
         for (int i = 0; i < state.a.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.a, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt, state.a, i);
             vs = vs.add(va);
         }
         return vs.addAll();
@@ -125,8 +125,8 @@ public class VectorOffHeapProfiling {
     @Benchmark
     public final ByteBuffer mulSIMD(VectorState state) {
         for(int i = 0; i < state.a.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.a, i);
-            IntVector vb = VectorState.sInt.fromByteBuffer(state.b, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.a, i);
+            IntVector vb = IntVector.fromByteBuffer(VectorState.sInt,state.b, i);
             IntVector vc = va.mul(vb);
             vc.intoByteBuffer(state.c, i);
         }
@@ -153,8 +153,8 @@ public class VectorOffHeapProfiling {
     @Benchmark
     public final ByteBuffer addSIMD(VectorState state) {
         for (int i = 0; i < state.a.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.a, i);
-            IntVector vb = VectorState.sInt.fromByteBuffer(state.b, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt, state.a, i);
+            IntVector vb = IntVector.fromByteBuffer(VectorState.sInt, state.b, i);
             IntVector vc = va.add(vb);
             vc.intoByteBuffer(state.c, i);
         }
@@ -183,7 +183,7 @@ public class VectorOffHeapProfiling {
         boolean blackhole = false;
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
             blackhole ^= m.getElement(0);
         }
@@ -215,7 +215,7 @@ public class VectorOffHeapProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask ma = va.equal(vfa);
             Mask mb = va.equal(vfb);
             blackhole ^= ma.or(mb).getElement(0);
@@ -252,7 +252,7 @@ public class VectorOffHeapProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
             m = m.or(va.equal(vfb));
             m = m.or(va.equal(vfc));
@@ -289,9 +289,9 @@ public class VectorOffHeapProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask ma = va.equal(vfa);
-            IntVector vb = VectorState.sInt.fromByteBuffer(state.bSmall, i);
+            IntVector vb = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i);
             Mask mb = vb.equal(vfb);
             blackhole ^= ma.and(mb).getElement(0);
         }
@@ -325,13 +325,13 @@ public class VectorOffHeapProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector v = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector v = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = v.equal(vfa);
-            v = VectorState.sInt.fromByteBuffer(state.bSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i);
             m = m.and(v.equal(vfb));
-            v = VectorState.sInt.fromByteBuffer(state.cSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.cSmall, i);
             m = m.and(v.equal(vfc));
-            v = VectorState.sInt.fromByteBuffer(state.dSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.dSmall, i);
             m = m.and(v.equal(vfd));
             blackhole ^= m.getElement(0);
         }
@@ -362,9 +362,9 @@ public class VectorOffHeapProfiling {
         IntVector vs = VectorState.sInt.zero();
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
-            vs = VectorState.sInt.fromByteBuffer(state.bSmall, i, m).add(vs);
+            vs = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -420,10 +420,10 @@ public class VectorOffHeapProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
             m = m.or(va.equal(vfb));
-            vs = VectorState.sInt.fromByteBuffer(state.bSmall, i, m).add(vs);
+            vs = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -461,12 +461,12 @@ public class VectorOffHeapProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector va = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector va = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = va.equal(vfa);
             m = m.or(va.equal(vfb));
             m = m.or(va.equal(vfc));
             m = m.or(va.equal(vfd));
-            vs = VectorState.sInt.fromByteBuffer(state.bSmall, i, m).add(vs);
+            vs = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -502,11 +502,11 @@ public class VectorOffHeapProfiling {
         IntVector vfa = VectorState.sInt.broadcast(state.fa);
         IntVector vfb = VectorState.sInt.broadcast(state.fb);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector v = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector v = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = v.equal(vfa);
-            v = VectorState.sInt.fromByteBuffer(state.bSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i);
             m = m.and(v.equal(vfb));
-            vs = VectorState.sInt.fromByteBuffer(state.cSmall, i, m).add(vs);
+            vs = IntVector.fromByteBuffer(VectorState.sInt,state.cSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
@@ -542,15 +542,15 @@ public class VectorOffHeapProfiling {
         IntVector vfc = VectorState.sInt.broadcast(state.fc);
         IntVector vfd = VectorState.sInt.broadcast(state.fd);
         for (int i = 0; i < state.aSmall.limit(); i += VectorState.vecBytes) {
-            IntVector v = VectorState.sInt.fromByteBuffer(state.aSmall, i);
+            IntVector v = IntVector.fromByteBuffer(VectorState.sInt,state.aSmall, i);
             Mask m = v.equal(vfa);
-            v = VectorState.sInt.fromByteBuffer(state.bSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.bSmall, i);
             m = m.and(v.equal(vfb));
-            v = VectorState.sInt.fromByteBuffer(state.cSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.cSmall, i);
             m = m.and(v.equal(vfc));
-            v = VectorState.sInt.fromByteBuffer(state.dSmall, i);
+            v = IntVector.fromByteBuffer(VectorState.sInt,state.dSmall, i);
             m = m.and(v.equal(vfd));
-            vs = VectorState.sInt.fromByteBuffer(state.eSmall, i, m).add(vs);
+            vs = IntVector.fromByteBuffer(VectorState.sInt,state.eSmall, i, m).add(vs);
         }
         return vs.addAll();
     }
