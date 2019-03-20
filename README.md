@@ -1,6 +1,6 @@
-# Java 12 Vector API Profiling
+# Java 13 Vector API Profiling
 
-This repository contains speed tests on the Java 12 Vector API, currently in development as part of OpenJDK Project Panama.
+This repository contains speed tests on the Java 13 Vector API, currently in development as part of OpenJDK Project Panama.
 
 ## Building
 
@@ -33,12 +33,12 @@ mvn clean install  # compiles the project
 
 Then, in a shell, run:
 ```shell
-$JAVA_HOME/bin/java -jar target/simd.jar
+$JAVA_HOME/bin/java --add-modules jdk.incubator.vector -jar target/simd.jar
 ```
 
 To automatically write the compiled assembly from the benchmark methods into `results/`, run:
 ```shell
-$JAVA_HOME/bin/java -cp target/simd.jar fr.centralesupelec.simd.AsmLogger
+$JAVA_HOME/bin/java --add-modules jdk.incubator.vector -cp target/simd.jar fr.centralesupelec.simd.AsmLogger
 ```
 
 Ignore any warnings regarding the use of incubator modules or illegal reflective accesses.

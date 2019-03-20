@@ -146,11 +146,15 @@ public class AsmLogger {
                 if(start == -1) {
                     System.err.println("Error: No c2 compiled method for benchmark " + method.getName() + ":");
                     stderr(process, method);
+                    System.err.println(sb.toString());
+                    continue;
                 }
                 start = sb.indexOf("[Entry Point]", start);
                 if(start == -1) {
                     System.err.println("Error: No entry point for method for benchmark " + method.getName() + ":");
                     stderr(process, method);
+                    System.err.println(sb.toString());
+                    continue;
                 }
                 int end = sb.indexOf("\nImmutableOopMap", start);
                 if(end == -1) {
