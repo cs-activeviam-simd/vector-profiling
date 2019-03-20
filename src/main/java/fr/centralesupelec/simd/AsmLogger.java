@@ -32,6 +32,8 @@ public class AsmLogger {
         }
     }
 
+    private static long blackhole = 42;
+
     public static void main(String[] args) {
         if(args.length == 0) {
             try {
@@ -66,7 +68,7 @@ public class AsmLogger {
 
             Fork fork = VectorProfiling.class.getAnnotation(Fork.class);
             if(fork != null) {
-                jvmArgs.addAll(Arrays.asList(fork.jvmArgsAppend()));
+                jvmArgs.addAll(Arrays.asList(fork.jvmArgsPrepend()));
             }
 
             Method[] methods = VectorProfiling.class.getMethods();
@@ -130,7 +132,7 @@ public class AsmLogger {
                 } catch (InterruptedException e) {
                     return;
                 }
-                if(exitCode != 0) {
+                if(exitCode < 10) {
                     System.err.println("Error: Benchmark " + method.getName() + " exited with unsuccessful exit code: " + exitCode);
                     stderr(process, method);
                     continue;
@@ -163,10 +165,14 @@ public class AsmLogger {
                     System.err.println("Error: Unable to write assembly for benchmark " + method.getName() + ":");
                     e.printStackTrace();
                 }
+
+                System.err.println(method.getName() + ":");
+                stderr(process, method);
             }
         } else {
             VectorProfiling profiling = new VectorProfiling();
             VectorProfiling.VectorState state = new VectorProfiling.VectorState();
+            state.ARRAY_LENGTH = 8192;
             state.doSetup();
 
             Method method;
@@ -182,13 +188,33 @@ public class AsmLogger {
             try {
                 for (int i = 0; i < 100000; i++) {
                     // reflective method invocation, but perfomance does not matter wrt asm generation
-                    method.invoke(profiling, state);
+                    consume(method.invoke(profiling, state));
                 }
             } catch (Exception e) {
                 System.err.println("Error: Benchmark error:");
                 e.printStackTrace();
                 System.exit(2);
             }
+
+            // use blackhole in jvm exit code
+            System.exit(10 + (int)(blackhole % 13));
+        }
+    }
+
+    private static void consume(Object o) {
+        if(o instanceof Integer) {
+            blackhole ^= (Integer) o;
+        } else if(o instanceof Long) {
+            blackhole ^= (Long) o;
+        } else if(o instanceof Boolean) {
+            blackhole ^= ((Boolean) o) ? 1 : 0;
+        } else if(o instanceof int[]) {
+            int[] a = (int[]) o;
+            for (int e : a) {
+                blackhole ^= e;
+            }
+        } else {
+            throw new IllegalArgumentException("Unexpected becnhmark return type: " + o.getClass().getCanonicalName());
         }
     }
 
